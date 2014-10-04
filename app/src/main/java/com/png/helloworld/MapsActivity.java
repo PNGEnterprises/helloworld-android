@@ -1,10 +1,15 @@
 package com.png.helloworld;
 
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
@@ -12,12 +17,45 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 public class MapsActivity extends ActionBarActivity {
 
+    private Location currentLocation;
+
+    private final LocationListener mLocationListener = new LocationListener() {
+        @Override
+        public void onLocationChanged(final Location location) {
+            currentLocation = location;
+            System.out.println("Location updated!");
+        }
+
+        @Override
+        public void onStatusChanged(String str, int i, Bundle b) {
+            System.out.println(str);
+        }
+
+        @Override
+        public void onProviderEnabled(String p) {
+            System.out.println(p);
+        }
+
+        @Override
+        public void onProviderDisabled(String p) {
+            System.out.println(p);
+        }
+    };
+
+    private LocationManager mLocationManager;
+
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+
+        mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        currentLocation = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0,
+                0, mLocationListener);
+
         setUpMapIfNeeded();
     }
 
@@ -33,6 +71,18 @@ public class MapsActivity extends ActionBarActivity {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.map_menu, menu);
         return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle presses on the action bar items
+        switch (item.getItemId()) {
+            case R.id.action_center_location:
+                centerMap();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     /**
@@ -71,5 +121,18 @@ public class MapsActivity extends ActionBarActivity {
      */
     private void setUpMap() {
         mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
+    }
+
+
+    private void centerMap() {
+        // Center the map on user's current location
+        if (currentLocation == null) {
+            System.out.println("Null location!!");
+            return;
+        }
+
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(
+                currentLocation.getLatitude(),
+                currentLocation.getLongitude())));
     }
 }
