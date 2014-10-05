@@ -234,8 +234,8 @@ public class MapsActivity extends ActionBarActivity {
                 if(response.equals("success")) {
                     System.out.println("IT WORKED");
                     AlertDialog.Builder workedAlert = new AlertDialog.Builder(thisActivity);
-                    workedAlert.setMessage("@string/message_sent_properly");
-
+                    workedAlert.setMessage(R.string.message_sent_properly);
+                    workedAlert.create().show();
                 }
                 else if (response.equals("database")) {
                     System.out.println("database fucked up try again in a min");
@@ -291,7 +291,7 @@ public class MapsActivity extends ActionBarActivity {
                     e.printStackTrace();
                     return;
                 }
-                if(wasSuccessful.equals("success")){
+                if(wasSuccessful.equals("success")) {
                     //KEY = messages. list of JSON objects which are message objects (what I sent + timestamp)
                     JSONArray messages;
                     try {
@@ -337,7 +337,7 @@ public class MapsActivity extends ActionBarActivity {
                 }
 
                 else {
-
+                    System.out.println("Error occurred!");
                 }
             }
 
