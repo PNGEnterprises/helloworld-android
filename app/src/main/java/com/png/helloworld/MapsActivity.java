@@ -1,5 +1,6 @@
 package com.png.helloworld;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.location.Location;
@@ -17,11 +18,8 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
-import com.loopj.android.http.RequestHandle;
-import com.loopj.android.http.ResponseHandlerInterface;
 
 import org.apache.http.Header;
 import org.apache.http.entity.StringEntity;
@@ -35,6 +33,8 @@ public class MapsActivity extends ActionBarActivity {
 
     private AlertDialog.Builder builder;
     private EditText messageField;
+
+    private Activity thisActivity;
 
     private final LocationListener mLocationListener = new LocationListener() {
         @Override
@@ -66,6 +66,8 @@ public class MapsActivity extends ActionBarActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        thisActivity = this;
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
@@ -77,6 +79,8 @@ public class MapsActivity extends ActionBarActivity {
         setUpMapIfNeeded();
 
         centerMap();
+
+        sendMessage ("hello", "pasta", "yolo");
     }
 
     @Override
@@ -199,6 +203,8 @@ public class MapsActivity extends ActionBarActivity {
                 }
                 if(response.equals("success")) {
                     System.out.println("IT WORKED");
+                    AlertDialog.Builder workedAlert = new AlertDialog.Builder(thisActivity);
+                    workedAlert.setMessage("@string/message_sent_properly");
 
                 }
                 else if (response.equals("database")) {
