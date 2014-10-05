@@ -81,8 +81,8 @@ public class MapsActivity extends ActionBarActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle presses on the action bar items
         switch (item.getItemId()) {
-            case R.id.action_center_location:
-                centerMap();
+            case R.id.action_compose:
+                writeMessage();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -134,6 +134,9 @@ public class MapsActivity extends ActionBarActivity {
         mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
     }
 
+    private void writeMessage() {
+
+    }
 
     private void centerMap() {
         // Center the map on user's current location
