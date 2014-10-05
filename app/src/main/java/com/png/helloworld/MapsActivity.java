@@ -18,30 +18,49 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
+import com.loopj.android.http.RequestHandle;
+import com.loopj.android.http.ResponseHandlerInterface;
 
 import org.apache.http.Header;
 import org.apache.http.entity.StringEntity;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Date;
+import java.text.SimpleDateFormat;
+import java.util.TimeZone;
 
 public class MapsActivity extends ActionBarActivity {
-    private Location currentLocation;
+    private LatLng currentLocation;
+    private LatLng lastLoadedLocation;
 
     private AlertDialog.Builder builder;
     private EditText messageField;
+
+    private HashMap<Marker, DisplayMessage> markerMessages;
 
     private Activity thisActivity;
 
     private final LocationListener mLocationListener = new LocationListener() {
         @Override
         public void onLocationChanged(final Location location) {
-            currentLocation = location;
+            currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
             System.out.println("Location updated!");
             centerMap();
+
+            if (distance(currentLocation, lastLoadedLocation) > 0.0003) {
+                getMessages(currentLocation);
+            }
         }
 
         @Override
@@ -66,21 +85,22 @@ public class MapsActivity extends ActionBarActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        thisActivity = this;
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
+        thisActivity = this;
+
         mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        currentLocation = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        Location currentLoc = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        currentLocation = new LatLng(currentLoc.getLatitude(), currentLoc.getLongitude());
         mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0,
                 0, mLocationListener); // Too many updates?
+
+        getMessages(currentLocation);
 
         setUpMapIfNeeded();
 
         centerMap();
-
-        sendMessage ("hello", "pasta", "yolo");
     }
 
     @Override
@@ -136,6 +156,17 @@ public class MapsActivity extends ActionBarActivity {
                 centerMap();
             }
         });
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(thisActivity);
+                builder.setMessage(markerMessages.get(marker).message)
+                        .setTitle("The Messsage");
+                builder.create().show();
+
+                return true;
+            }
+        });
         //mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
     }
 
@@ -147,7 +178,7 @@ public class MapsActivity extends ActionBarActivity {
 
     private void sendMessage(String message) {
         System.out.println(message);
-        sendMessage(currentLocation.getLatitude(), currentLocation.getLongitude(), message);
+        sendMessage(currentLocation.latitude, currentLocation.longitude, message);
     }
 
     private void createBuilder() {
@@ -171,9 +202,8 @@ public class MapsActivity extends ActionBarActivity {
             return;
         }
 
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(
-                currentLocation.getLatitude(),
-                currentLocation.getLongitude())));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(
+                new LatLng(currentLocation.latitude, currentLocation.longitude)));
     }
     
     private void sendMessage(final double latitude, final double longitude, final String message) {
@@ -231,6 +261,120 @@ public class MapsActivity extends ActionBarActivity {
         }
         catch (UnsupportedEncodingException e) {
 
+        }
+    }
+
+    private void getMessages(LatLng loc) {
+
+        lastLoadedLocation = new LatLng(loc.latitude, loc.longitude);
+
+        JSONObject jmessage = new JSONObject();
+        try {
+            jmessage.put("latLocation", loc.latitude);
+            jmessage.put("lonLocation", loc.longitude);
+        } catch (JSONException e) {
+
+        }
+        //Create a client to make networking happen
+        AsyncHttpClient client = new AsyncHttpClient();
+
+        JsonHttpResponseHandler jsonHttpResponseHandler = new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONObject jsonResponse) {
+                //make list of JSON objects into list of Java objects to send to Justin
+
+                //IN CASE OF ERROR = SUCCESS PARSE SOME SHIT
+                String wasSuccessful = null;
+                try {
+                    wasSuccessful = jsonResponse.getString("error");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    return;
+                }
+                if(wasSuccessful.equals("success")){
+                    //KEY = messages. list of JSON objects which are message objects (what I sent + timestamp)
+                    JSONArray messages;
+                    try {
+                        messages = jsonResponse.getJSONArray("messages");
+                    }
+
+                    catch (JSONException e) {
+                        return;
+                    }
+                    ArrayList<DisplayMessage> messageObjects = new ArrayList<DisplayMessage>();
+                    //Make array of java objects to
+                    for (int i = 0; i < messages.length(); i++) {
+                        Double lon;
+                        Double lat;
+                        String message;
+                        String timeStamp; //receive in UTC, convert to local time
+
+                        String format = "yyyy/MM/dd HH:mm:ss";
+                        //SimpleDateFormat sdf = new SimpleDateFormat(format);
+                        Date sdf = new Date();
+                        try {
+                            lon = messages.getJSONObject(i).getDouble("lon");
+                            lat = messages.getJSONObject(i).getDouble("lon");
+                            message = messages.getJSONObject(i).getString("message");
+                            timeStamp = messages.getJSONObject(i).get("timestamp").toString(); // XXX
+                            try {
+                                sdf = new SimpleDateFormat(format).parse(timeStamp);
+                            }
+                            catch (ParseException e) {
+
+                            }
+
+                        }
+                        catch (JSONException e) {
+                            return;
+                        }
+
+                        DisplayMessage messageReceived = new DisplayMessage(lon, lat, message, sdf);
+                        messageObjects.add(messageReceived);
+                    }
+
+                    placeMarkers(messageObjects);
+                }
+
+                else {
+
+                }
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject error) {
+                System.out.println(":(");
+            }
+        };
+
+
+        StringEntity stringEntity;
+        try{
+            stringEntity = new StringEntity(jmessage.toString());
+            client.post(getApplicationContext(),
+                    "http://helloworldbackend.herokuapp.com/api/v1/get-messages",
+                    stringEntity,
+                    "application/json",
+                    jsonHttpResponseHandler);
+        }
+        catch (UnsupportedEncodingException e) {
+
+        }
+    }
+
+    private double distance(LatLng loc1, LatLng loc2) {
+        return Math.sqrt(
+                Math.pow(loc1.latitude - loc2.latitude, 2) +
+                Math.pow(loc1.longitude - loc2.longitude, 2));
+    }
+
+    private void placeMarkers(List<DisplayMessage> messages) {
+        markerMessages = new HashMap<Marker, DisplayMessage>();
+
+        for (int i = 0; i < messages.size(); ++i) {
+            Marker marker = mMap.addMarker(new MarkerOptions()
+                    .position(new LatLng(messages.get(i).lat, messages.get(i).lon)));
+            markerMessages.put(marker, messages.get(i));
         }
     }
 }
