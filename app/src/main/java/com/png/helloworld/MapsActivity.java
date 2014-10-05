@@ -1,5 +1,7 @@
 package com.png.helloworld;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -8,6 +10,7 @@ import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.EditText;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -19,6 +22,9 @@ import com.google.android.gms.maps.model.MarkerOptions;
 public class MapsActivity extends ActionBarActivity {
 
     private Location currentLocation;
+
+    private AlertDialog.Builder builder;
+    private EditText messageField;
 
     private final LocationListener mLocationListener = new LocationListener() {
         @Override
@@ -135,7 +141,28 @@ public class MapsActivity extends ActionBarActivity {
     }
 
     private void writeMessage() {
+        createBuilder();
+        System.out.println("Compose message");
+        builder.create().show();
+    }
 
+    private void sendMessage(String message) {
+        System.out.println(message);
+        createBuilder();
+    }
+
+    private void createBuilder() {
+        builder = new AlertDialog.Builder(this);
+        messageField = new EditText(this);
+        builder.setMessage("Type a message to leave here")
+                .setTitle("Leave a message")
+                .setView(messageField)
+                .setPositiveButton("Submit", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        sendMessage(messageField.getText().toString());
+                    }
+                });
     }
 
     private void centerMap() {
