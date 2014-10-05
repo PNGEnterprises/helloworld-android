@@ -313,23 +313,24 @@ public class MapsActivity extends ActionBarActivity {
                         //SimpleDateFormat sdf = new SimpleDateFormat(format);
                         Date sdf = new Date();
                         try {
-                            lon = messages.getJSONObject(i).getDouble("lon");
-                            lat = messages.getJSONObject(i).getDouble("lon");
+                            lon = messages.getJSONObject(i).getDouble("lonLocation");
+                            lat = messages.getJSONObject(i).getDouble("latLocation");
                             message = messages.getJSONObject(i).getString("message");
-                            timeStamp = messages.getJSONObject(i).get("timestamp").toString(); // XXX
+                            //timeStamp = messages.getJSONObject(i).get("timestamp").toString(); // XXX
                             try {
-                                sdf = new SimpleDateFormat(format).parse(timeStamp);
+                                //sdf = new SimpleDateFormat(format).parse(timeStamp);
                             }
-                            catch (ParseException e) {
+                            catch (Exception e) {
 
                             }
 
                         }
                         catch (JSONException e) {
+                            System.out.println("Error processing message!!");
                             return;
                         }
 
-                        DisplayMessage messageReceived = new DisplayMessage(lon, lat, message, sdf);
+                        DisplayMessage messageReceived = new DisplayMessage(lat, lon, message, sdf);
                         messageObjects.add(messageReceived);
                     }
 
