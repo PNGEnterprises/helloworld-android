@@ -150,12 +150,7 @@ public class MapsActivity extends ActionBarActivity {
      */
     private void setUpMap() {
         mMap.moveCamera(CameraUpdateFactory.zoomTo(16));
-        mMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
-            @Override
-            public void onCameraChange(CameraPosition cameraPosition) {
-                centerMap();
-            }
-        });
+        mMap.getUiSettings().setAllGesturesEnabled(false);
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
