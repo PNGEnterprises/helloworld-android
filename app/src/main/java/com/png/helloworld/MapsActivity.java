@@ -371,6 +371,7 @@ public class MapsActivity extends ActionBarActivity {
 
     private void placeMarkers(List<DisplayMessage> messages) {
         markerMessages = new HashMap<Marker, DisplayMessage>();
+        mMap.clear();
 
         for (int i = 0; i < messages.size(); ++i) {
             Marker marker = mMap.addMarker(new MarkerOptions()
