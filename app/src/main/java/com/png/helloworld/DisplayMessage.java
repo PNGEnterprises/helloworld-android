@@ -5,13 +5,13 @@ package com.png.helloworld;
  */
 public class DisplayMessage{
 
-    private Double lat;
+    public Double lat;
 
-    private Double lon;
+    public Double lon;
 
-    private String message;
+    public String message;
 
-    private Long timeStamp;
+    public Long timeStamp;
 
     public DisplayMessage (Double lat, Double lon, String message, Long timeStamp){
         this.lat = lat;

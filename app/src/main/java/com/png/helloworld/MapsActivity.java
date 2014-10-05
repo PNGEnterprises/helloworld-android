@@ -1,5 +1,6 @@
 package com.png.helloworld;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.location.Location;
@@ -17,11 +18,10 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
-import com.loopj.android.http.RequestHandle;
-import com.loopj.android.http.ResponseHandlerInterface;
 
 import org.apache.http.Header;
 import org.apache.http.entity.StringEntity;
@@ -30,20 +30,30 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 
 public class MapsActivity extends ActionBarActivity {
-    private Location currentLocation;
+    private LatLng currentLocation;
+    private LatLng lastLoadedLocation;
 
     private AlertDialog.Builder builder;
     private EditText messageField;
 
+    private HashMap<Marker, DisplayMessage> markerMessages;
+
     private final LocationListener mLocationListener = new LocationListener() {
         @Override
         public void onLocationChanged(final Location location) {
-            currentLocation = location;
+            currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
             System.out.println("Location updated!");
             centerMap();
+
+            if (distance(currentLocation, lastLoadedLocation) > 0.0003) {
+                getMessages(currentLocation);
+            }
         }
 
         @Override
@@ -66,15 +76,22 @@ public class MapsActivity extends ActionBarActivity {
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
 
+    private Activity thisActivity;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
+        thisActivity = this;
+
         mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        currentLocation = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        Location currentLoc = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        currentLocation = new LatLng(currentLoc.getLatitude(), currentLoc.getLongitude());
         mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0,
                 0, mLocationListener); // Too many updates?
+
+        getMessages(currentLocation);
 
         setUpMapIfNeeded();
 
@@ -134,6 +151,17 @@ public class MapsActivity extends ActionBarActivity {
                 centerMap();
             }
         });
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(thisActivity);
+                builder.setMessage(markerMessages.get(marker).message)
+                        .setTitle("The Messsage");
+                builder.create().show();
+
+                return true;
+            }
+        });
         //mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
     }
 
@@ -145,7 +173,7 @@ public class MapsActivity extends ActionBarActivity {
 
     private void sendMessage(String message) {
         System.out.println(message);
-        sendMessage(currentLocation.getLatitude(), currentLocation.getLongitude(), message);
+        sendMessage(currentLocation.latitude, currentLocation.longitude, message);
     }
 
     private void createBuilder() {
@@ -169,9 +197,8 @@ public class MapsActivity extends ActionBarActivity {
             return;
         }
 
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(
-                currentLocation.getLatitude(),
-                currentLocation.getLongitude())));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(
+                new LatLng(currentLocation.latitude, currentLocation.longitude)));
     }
     
     private void sendMessage(final double latitude, final double longitude, final String message) {
@@ -230,12 +257,14 @@ public class MapsActivity extends ActionBarActivity {
         }
     }
 
-    private void getMessages(double longitude, double latitude) {
+    private void getMessages(LatLng loc) {
+
+        lastLoadedLocation = new LatLng(loc.latitude, loc.longitude);
 
         JSONObject jmessage = new JSONObject();
         try {
-            jmessage.put("latLocation", latitude);
-            jmessage.put("lonLocation", longitude);
+            jmessage.put("latLocation", loc.latitude);
+            jmessage.put("lonLocation", loc.longitude);
         } catch (JSONException e) {
 
         }
@@ -248,18 +277,24 @@ public class MapsActivity extends ActionBarActivity {
                 //make list of JSON objects into list of Java objects to send to Justin
 
                 //IN CASE OF ERROR = SUCCESS PARSE SOME SHIT
-                String wasSuccessful = jsonResponse.get("error");
-                if(error.equals("success")){
+                String wasSuccessful = null;
+                try {
+                    wasSuccessful = jsonResponse.getString("error");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    return;
+                }
+                if(wasSuccessful.equals("success")){
                     //KEY = messages. list of JSON objects which are message objects (what I sent + timestamp)
                     JSONArray messages;
                     try {
-                        messages = jsonResponse.get("messages").toArray();
+                        messages = jsonResponse.getJSONArray("messages");
                     }
 
                     catch (JSONException e) {
-
+                        return;
                     }
-                    DisplayMessage[] messagesToSend;
+                    ArrayList<DisplayMessage> messageObjects = new ArrayList<DisplayMessage>();
                     //Make array of java objects to
                     for (int i = 0; i < messages.length(); i++) {
                         Double lon;
@@ -268,41 +303,24 @@ public class MapsActivity extends ActionBarActivity {
                         Long timeStamp;
 
                         try {
-                            lon = Double.parseDouble(messages[i].get("lon"));
-                            lat = messages[i].get("lat");
-                            message = messages[i].get("message");
-
+                            lon = messages.getJSONObject(i).getDouble("lon");
+                            lat = messages.getJSONObject(i).getDouble("lon");
+                            message = messages.getJSONObject(i).getString("message");
+                            timeStamp = new Long(0); // XXX
                         }
                         catch (JSONException e) {
-
+                            return;
                         }
 
-                        DisplayMessage messageToSend = new DisplayMessage(lon, lat, message, timeStamp);
-                        messagesToSend[i] = messageToSend;
+                        DisplayMessage messageReceived = new DisplayMessage(lon, lat, message, timeStamp);
+                        messageObjects.add(messageReceived);
                     }
+
+                    placeMarkers(messageObjects);
                 }
 
                 else {
 
-                }
-
-                System.out.println("yay");
-                String response = "";
-                try {
-                    response = jsonResponse.get("error").toString();
-                }
-                catch (JSONException e) {
-
-                }
-                if(response.equals("success")) {
-                    System.out.println("IT WORKED");
-
-                }
-                else if (response.equals("database")) {
-                    System.out.println("database fucked up try again in a min");
-                }
-                else {
-                    System.out.println("SOMETHNG FUCKED UP IDK");
                 }
             }
 
@@ -311,6 +329,8 @@ public class MapsActivity extends ActionBarActivity {
                 System.out.println(":(");
             }
         };
+
+
         StringEntity stringEntity;
         try{
             stringEntity = new StringEntity(jmessage.toString());
@@ -322,6 +342,22 @@ public class MapsActivity extends ActionBarActivity {
         }
         catch (UnsupportedEncodingException e) {
 
+        }
+    }
+
+    private double distance(LatLng loc1, LatLng loc2) {
+        return Math.sqrt(
+                Math.pow(loc1.latitude - loc2.latitude, 2) +
+                Math.pow(loc1.longitude - loc2.longitude, 2));
+    }
+
+    private void placeMarkers(List<DisplayMessage> messages) {
+        markerMessages = new HashMap<Marker, DisplayMessage>();
+
+        for (int i = 0; i < messages.size(); ++i) {
+            Marker marker = mMap.addMarker(new MarkerOptions()
+                    .position(new LatLng(messages.get(i).lat, messages.get(i).lon)));
+            markerMessages.put(marker, messages.get(i));
         }
     }
 }
