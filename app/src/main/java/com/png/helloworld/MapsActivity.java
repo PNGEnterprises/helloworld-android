@@ -30,10 +30,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
+import java.util.Date;
+import java.text.SimpleDateFormat;
+import java.util.TimeZone;
 
 public class MapsActivity extends ActionBarActivity {
     private LatLng currentLocation;
@@ -300,19 +303,29 @@ public class MapsActivity extends ActionBarActivity {
                         Double lon;
                         Double lat;
                         String message;
-                        Long timeStamp;
+                        String timeStamp; //receive in UTC, convert to local time
 
+                        String format = "yyyy/MM/dd HH:mm:ss";
+                        //SimpleDateFormat sdf = new SimpleDateFormat(format);
+                        Date sdf = new Date();
                         try {
                             lon = messages.getJSONObject(i).getDouble("lon");
                             lat = messages.getJSONObject(i).getDouble("lon");
                             message = messages.getJSONObject(i).getString("message");
-                            timeStamp = new Long(0); // XXX
+                            timeStamp = messages.getJSONObject(i).get("timestamp").toString(); // XXX
+                            try {
+                                sdf = new SimpleDateFormat(format).parse(timeStamp);
+                            }
+                            catch (ParseException e) {
+
+                            }
+
                         }
                         catch (JSONException e) {
                             return;
                         }
 
-                        DisplayMessage messageReceived = new DisplayMessage(lon, lat, message, timeStamp);
+                        DisplayMessage messageReceived = new DisplayMessage(lon, lat, message, sdf);
                         messageObjects.add(messageReceived);
                     }
 
