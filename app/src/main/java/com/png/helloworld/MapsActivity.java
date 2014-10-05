@@ -12,12 +12,21 @@ import android.view.MenuItem;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.JsonHttpResponseHandler;
+import com.loopj.android.http.RequestHandle;
+import com.loopj.android.http.ResponseHandlerInterface;
+
+import org.apache.http.Header;
+import org.apache.http.entity.StringEntity;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.UnsupportedEncodingException;
 
 public class MapsActivity extends ActionBarActivity {
-
     private Location currentLocation;
 
     private final LocationListener mLocationListener = new LocationListener() {
@@ -56,11 +65,13 @@ public class MapsActivity extends ActionBarActivity {
         mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         currentLocation = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0,
-               0, mLocationListener); // Too many updates?
+                0, mLocationListener); // Too many updates?
 
         setUpMapIfNeeded();
 
         centerMap();
+
+        sendMessage ("hello", "pasta", "yolo");
     }
 
     @Override
@@ -88,22 +99,7 @@ public class MapsActivity extends ActionBarActivity {
                 return super.onOptionsItemSelected(item);
         }
     }
-
-    /**
-     * Sets up the map if it is possible to do so (i.e., the Google Play services APK is correctly
-     * installed) and the map has not already been instantiated.. This will ensure that we only ever
-     * call {@link #setUpMap()} once when {@link #mMap} is not null.
-     * <p>
-     * If it isn't installed {@link SupportMapFragment} (and
-     * {@link com.google.android.gms.maps.MapView MapView}) will show a prompt for the user to
-     * install/update the Google Play services APK on their device.
-     * <p>
-     * A user can return to this FragmentActivity after following the prompt and correctly
-     * installing/updating/enabling the Google Play services. Since the FragmentActivity may not
-     * have been completely destroyed during this process (it is likely that it would only be
-     * stopped or paused), {@link #onCreate(Bundle)} may not be called again so we should call this
-     * method in {@link #onResume()} to guarantee that it will be called.
-     */
+    
     private void setUpMapIfNeeded() {
         // Do a null check to confirm that we have not already instantiated the map.
         if (mMap == null) {
@@ -124,13 +120,6 @@ public class MapsActivity extends ActionBarActivity {
      * This should only be called once and when we are sure that {@link #mMap} is not null.
      */
     private void setUpMap() {
-        mMap.moveCamera(CameraUpdateFactory.zoomTo(16));
-        mMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
-            @Override
-            public void onCameraChange(CameraPosition cameraPosition) {
-                centerMap();
-            }
-        });
         mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
     }
 
@@ -148,5 +137,44 @@ public class MapsActivity extends ActionBarActivity {
         mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(
                 currentLocation.getLatitude(),
                 currentLocation.getLongitude())));
+    }
+    
+    private void sendMessage(String latitude, String longitude, String message) {
+
+        JSONObject jmessage = new JSONObject();
+        try {
+            jmessage.put("latLocation", latitude);
+            jmessage.put("lonLocation", longitude);
+            jmessage.put("message", message);
+        } catch (JSONException e) {
+
+        }
+        //Create a client to make networking happen
+        AsyncHttpClient client = new AsyncHttpClient();
+
+        JsonHttpResponseHandler jsonHttpResponseHandler = new JsonHttpResponseHandler() {
+            //"helloworldbackend.herokuapp.com/api/v1/post-message
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONObject jsonResponse) {
+                System.out.println("yay");
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject error) {
+                System.out.println(":(");
+            }
+        };
+        StringEntity stringEntity;
+        try{
+            stringEntity = new StringEntity(jmessage.toString());
+            client.post(getApplicationContext(),
+                    "http://helloworldbackend.herokuapp.com/api/v1/post-message",
+                    stringEntity,
+                    "application/json",
+                    jsonHttpResponseHandler);
+        }
+        catch (UnsupportedEncodingException e) {
+
+        }
     }
 }
