@@ -15,6 +15,7 @@ import android.widget.EditText;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.loopj.android.http.AsyncHttpClient;
@@ -76,8 +77,6 @@ public class MapsActivity extends ActionBarActivity {
         setUpMapIfNeeded();
 
         centerMap();
-
-        sendMessage ("hello", "pasta", "yolo");
     }
 
     @Override
@@ -126,7 +125,14 @@ public class MapsActivity extends ActionBarActivity {
      * This should only be called once and when we are sure that {@link #mMap} is not null.
      */
     private void setUpMap() {
-        mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
+        mMap.moveCamera(CameraUpdateFactory.zoomTo(16));
+        mMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
+            @Override
+            public void onCameraChange(CameraPosition cameraPosition) {
+                centerMap();
+            }
+        });
+        //mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
     }
 
     private void writeMessage() {
@@ -137,7 +143,7 @@ public class MapsActivity extends ActionBarActivity {
 
     private void sendMessage(String message) {
         System.out.println(message);
-        createBuilder();
+        sendMessage(currentLocation.getLatitude(), currentLocation.getLongitude(), message);
     }
 
     private void createBuilder() {
@@ -166,7 +172,7 @@ public class MapsActivity extends ActionBarActivity {
                 currentLocation.getLongitude())));
     }
     
-    private void sendMessage(final float latitude, final float longitude, final String message) {
+    private void sendMessage(final double latitude, final double longitude, final String message) {
 
         JSONObject jmessage = new JSONObject();
         try {
