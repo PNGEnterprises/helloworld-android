@@ -25,10 +25,12 @@ import com.loopj.android.http.ResponseHandlerInterface;
 
 import org.apache.http.Header;
 import org.apache.http.entity.StringEntity;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+
 
 public class MapsActivity extends ActionBarActivity {
     private Location currentLocation;
@@ -219,6 +221,101 @@ public class MapsActivity extends ActionBarActivity {
             stringEntity = new StringEntity(jmessage.toString());
             client.post(getApplicationContext(),
                     "http://helloworldbackend.herokuapp.com/api/v1/post-message",
+                    stringEntity,
+                    "application/json",
+                    jsonHttpResponseHandler);
+        }
+        catch (UnsupportedEncodingException e) {
+
+        }
+    }
+
+    private void getMessages(double longitude, double latitude) {
+
+        JSONObject jmessage = new JSONObject();
+        try {
+            jmessage.put("latLocation", latitude);
+            jmessage.put("lonLocation", longitude);
+        } catch (JSONException e) {
+
+        }
+        //Create a client to make networking happen
+        AsyncHttpClient client = new AsyncHttpClient();
+
+        JsonHttpResponseHandler jsonHttpResponseHandler = new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONObject jsonResponse) {
+                //make list of JSON objects into list of Java objects to send to Justin
+
+                //IN CASE OF ERROR = SUCCESS PARSE SOME SHIT
+                String wasSuccessful = jsonResponse.get("error");
+                if(error.equals("success")){
+                    //KEY = messages. list of JSON objects which are message objects (what I sent + timestamp)
+                    JSONArray messages;
+                    try {
+                        messages = jsonResponse.get("messages").toArray();
+                    }
+
+                    catch (JSONException e) {
+
+                    }
+                    DisplayMessage[] messagesToSend;
+                    //Make array of java objects to
+                    for (int i = 0; i < messages.length(); i++) {
+                        Double lon;
+                        Double lat;
+                        String message;
+                        Long timeStamp;
+
+                        try {
+                            lon = Double.parseDouble(messages[i].get("lon"));
+                            lat = messages[i].get("lat");
+                            message = messages[i].get("message");
+
+                        }
+                        catch (JSONException e) {
+
+                        }
+
+                        DisplayMessage messageToSend = new DisplayMessage(lon, lat, message, timeStamp);
+                        messagesToSend[i] = messageToSend;
+                    }
+                }
+
+                else {
+
+                }
+
+                System.out.println("yay");
+                String response = "";
+                try {
+                    response = jsonResponse.get("error").toString();
+                }
+                catch (JSONException e) {
+
+                }
+                if(response.equals("success")) {
+                    System.out.println("IT WORKED");
+
+                }
+                else if (response.equals("database")) {
+                    System.out.println("database fucked up try again in a min");
+                }
+                else {
+                    System.out.println("SOMETHNG FUCKED UP IDK");
+                }
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject error) {
+                System.out.println(":(");
+            }
+        };
+        StringEntity stringEntity;
+        try{
+            stringEntity = new StringEntity(jmessage.toString());
+            client.post(getApplicationContext(),
+                    "http://helloworldbackend.herokuapp.com/api/v1/get-messages",
                     stringEntity,
                     "application/json",
                     jsonHttpResponseHandler);
