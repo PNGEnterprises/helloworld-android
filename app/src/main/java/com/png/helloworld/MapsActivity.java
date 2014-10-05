@@ -166,7 +166,7 @@ public class MapsActivity extends ActionBarActivity {
                 currentLocation.getLongitude())));
     }
     
-    private void sendMessage(String latitude, String longitude, String message) {
+    private void sendMessage(final float latitude, final float longitude, final String message) {
 
         JSONObject jmessage = new JSONObject();
         try {
@@ -184,6 +184,23 @@ public class MapsActivity extends ActionBarActivity {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject jsonResponse) {
                 System.out.println("yay");
+                String response = "";
+                try {
+                    response = jsonResponse.get("error").toString();
+                }
+                catch (JSONException e) {
+
+                }
+                if(response.equals("success")) {
+                    System.out.println("IT WORKED");
+
+                }
+                else if (response.equals("database")) {
+                    System.out.println("database fucked up try again in a min");
+                }
+                else {
+                    System.out.println("SOMETHNG FUCKED UP IDK");
+                }
             }
 
             @Override
