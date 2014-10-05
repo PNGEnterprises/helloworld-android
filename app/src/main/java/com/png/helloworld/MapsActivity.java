@@ -58,7 +58,7 @@ public class MapsActivity extends ActionBarActivity {
             System.out.println("Location updated!");
             centerMap();
 
-            if (distance(currentLocation, lastLoadedLocation) > 0.0003) {
+            if (distance(currentLocation, lastLoadedLocation) >= 0.0004) {
                 getMessages(currentLocation);
             }
         }
@@ -92,7 +92,11 @@ public class MapsActivity extends ActionBarActivity {
 
         mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         Location currentLoc = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        currentLocation = new LatLng(currentLoc.getLatitude(), currentLoc.getLongitude());
+        if (currentLoc == null) {
+            currentLocation = new LatLng(0, 0);
+        } else {
+            currentLocation = new LatLng(currentLoc.getLatitude(), currentLoc.getLongitude());
+        }
         mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0,
                 0, mLocationListener); // Too many updates?
 
@@ -268,7 +272,7 @@ public class MapsActivity extends ActionBarActivity {
             jmessage.put("latLocation", loc.latitude);
             jmessage.put("lonLocation", loc.longitude);
         } catch (JSONException e) {
-
+            System.out.println("Error making request!");
         }
         //Create a client to make networking happen
         AsyncHttpClient client = new AsyncHttpClient();
@@ -294,6 +298,7 @@ public class MapsActivity extends ActionBarActivity {
                     }
 
                     catch (JSONException e) {
+                        System.out.println("No messages in response!");
                         return;
                     }
                     ArrayList<DisplayMessage> messageObjects = new ArrayList<DisplayMessage>();
@@ -354,7 +359,7 @@ public class MapsActivity extends ActionBarActivity {
                     jsonHttpResponseHandler);
         }
         catch (UnsupportedEncodingException e) {
-
+            System.out.println("Unsupported location error");
         }
     }
 
