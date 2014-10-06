@@ -244,9 +244,19 @@ public class MapsActivity extends ActionBarActivity {
                 }
                 else if (response.equals("database")) {
                     System.out.println("database fucked up try again in a min");
+                    Context sentFailContext = getApplicationContext();
+                    int duration = Toast.LENGTH_SHORT;
+
+                    Toast sentFailToast = Toast.makeText(sentFailContext, R.string.message_sent_fail, duration);
+                    sentFailToast.show();
                 }
                 else {
                     System.out.println("SOMETHNG FUCKED UP IDK");
+                    Context sentGeneralFailContext = getApplicationContext();
+                    int duration = Toast.LENGTH_SHORT;
+
+                    Toast sentGeneralFailToast = Toast.makeText(sentGeneralFailContext, R.string.message_sent_general_fail, duration);
+                    sentGeneralFailToast.show();
                 }
             }
 

@@ -7,5 +7,7 @@
     <string name="action_compose">Add Marker</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="message_sent_properly">Your note has been left</string>
+    <string name="message_sent_fail">Your note failed to send due to a database error</string>
+    <string name="message_sent_general_fail">Your note failed to send</string>
 
 </resources>
