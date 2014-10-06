@@ -175,7 +175,7 @@ public class MapsActivity extends ActionBarActivity {
 
     private void writeMessage() {
         createBuilder();
-        System.out.println("Compose message");
+        System.out.println("Compose note");
         builder.create().show();
     }
 
@@ -187,8 +187,8 @@ public class MapsActivity extends ActionBarActivity {
     private void createBuilder() {
         builder = new AlertDialog.Builder(this);
         messageField = new EditText(this);
-        builder.setMessage("Type a message to leave here")
-                .setTitle("Leave a message")
+        builder.setMessage("Type a note to leave here")
+                .setTitle("Leave a note")
                 .setView(messageField)
                 .setPositiveButton("Submit", new DialogInterface.OnClickListener() {
                     @Override
@@ -241,10 +241,6 @@ public class MapsActivity extends ActionBarActivity {
 
                     Toast sentSuccessToast = Toast.makeText(sentSuccessContext, R.string.message_sent_properly, duration);
                     sentSuccessToast.show();
-
-                    AlertDialog.Builder workedAlert = new AlertDialog.Builder(thisActivity);
-                    workedAlert.setMessage(R.string.message_sent_properly);
-                    workedAlert.create().show();
                 }
                 else if (response.equals("database")) {
                     System.out.println("database fucked up try again in a min");
