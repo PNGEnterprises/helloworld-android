@@ -187,8 +187,7 @@ public class MapsActivity extends ActionBarActivity {
     private void createBuilder() {
         builder = new AlertDialog.Builder(this);
         messageField = new EditText(this);
-        builder.setMessage("Type a note to leave here")
-                .setTitle("Leave a note")
+        builder.setMessage(R.string.leave_note_title)
                 .setView(messageField)
                 .setPositiveButton("Submit", new DialogInterface.OnClickListener() {
                     @Override

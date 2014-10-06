@@ -4,10 +4,11 @@
     <string name="app_name">Hello World</string>
     <string name="real_app_name">Hello World</string>
     <string name="title_activity_maps">Hello World</string>
-    <string name="action_compose">Add Marker</string>
+    <string name="action_compose">Leave a note</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="message_sent_properly">Your note has been left</string>
     <string name="message_sent_fail">Your note failed to send due to a database error</string>
     <string name="message_sent_general_fail">Your note failed to send</string>
+    <string name="leave_note_title">Type a note to leave here</string>
 
 </resources>
