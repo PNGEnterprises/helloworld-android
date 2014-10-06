@@ -156,7 +156,7 @@ public class MapsActivity extends ActionBarActivity {
      */
     private void setUpMap() {
         mMap.moveCamera(CameraUpdateFactory.zoomTo(16));
-        mMap.getUiSettings().setScrollGesturesEnabled(false); //stops map movemnt
+        mMap.getUiSettings().setScrollGesturesEnabled(false); //stops map movment/scrolling
         mMap.getUiSettings().setTiltGesturesEnabled(false);  //stops tilting in the map
         mMap.getUiSettings().setZoomGesturesEnabled(false);  //stops zooming with touch
         mMap.getUiSettings().setZoomControlsEnabled(false);  //removes zoom buttons
@@ -164,8 +164,7 @@ public class MapsActivity extends ActionBarActivity {
             @Override
             public boolean onMarkerClick(Marker marker) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(thisActivity);
-                builder.setMessage(markerMessages.get(marker).message)
-                        .setTitle("The Messsage");
+                builder.setMessage(markerMessages.get(marker).message);
                 builder.create().show();
 
                 return true;
