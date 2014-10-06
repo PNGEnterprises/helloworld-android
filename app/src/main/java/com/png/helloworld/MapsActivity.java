@@ -155,6 +155,7 @@ public class MapsActivity extends ActionBarActivity {
     private void setUpMap() {
         mMap.moveCamera(CameraUpdateFactory.zoomTo(16));
         mMap.getUiSettings().setAllGesturesEnabled(false);
+        mMap.getUiSettings().setZoomControlsEnabled(false);
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
