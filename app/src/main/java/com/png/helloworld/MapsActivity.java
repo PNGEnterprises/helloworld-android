@@ -2,6 +2,7 @@ package com.png.helloworld;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.location.Location;
 import android.location.LocationListener;
@@ -12,6 +13,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -235,6 +237,12 @@ public class MapsActivity extends ActionBarActivity {
                 }
                 if(response.equals("success")) {
                     System.out.println("IT WORKED");
+                    Context sentSuccessContext = getApplicationContext();
+                    int duration = Toast.LENGTH_SHORT;
+
+                    Toast sentSuccessToast = Toast.makeText(sentSuccessContext, R.string.message_sent_properly, duration);
+                    sentSuccessToast.show();
+
                     AlertDialog.Builder workedAlert = new AlertDialog.Builder(thisActivity);
                     workedAlert.setMessage(R.string.message_sent_properly);
                     workedAlert.create().show();
