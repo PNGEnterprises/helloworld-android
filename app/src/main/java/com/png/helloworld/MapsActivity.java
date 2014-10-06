@@ -154,8 +154,10 @@ public class MapsActivity extends ActionBarActivity {
      */
     private void setUpMap() {
         mMap.moveCamera(CameraUpdateFactory.zoomTo(16));
-        mMap.getUiSettings().setAllGesturesEnabled(false);
-        mMap.getUiSettings().setZoomControlsEnabled(false);
+        mMap.getUiSettings().setScrollGesturesEnabled(false); //stops map movemnt
+        mMap.getUiSettings().setTiltGesturesEnabled(false);  //stops tilting in the map
+        mMap.getUiSettings().setZoomGesturesEnabled(false);  //stops zooming with touch
+        mMap.getUiSettings().setZoomControlsEnabled(false);  //removes zoom buttons
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
