@@ -1,5 +1,6 @@
 package com.png.helloworld;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -8,10 +9,12 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -90,6 +93,9 @@ public class MapsActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
+        ActionBar actionBar = getActionBar();
+        actionBar.hide();
+
         thisActivity = this;
 
         mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
@@ -113,26 +119,6 @@ public class MapsActivity extends ActionBarActivity {
     protected void onResume() {
         super.onResume();
         setUpMapIfNeeded();
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the map_menu items for use in the action bar
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.map_menu, menu);
-        return super.onCreateOptionsMenu(menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle presses on the action bar items
-        switch (item.getItemId()) {
-            case R.id.action_compose:
-                writeMessage();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
     }
     
     private void setUpMapIfNeeded() {
@@ -173,7 +159,7 @@ public class MapsActivity extends ActionBarActivity {
         //mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
     }
 
-    private void writeMessage() {
+    public void writeMessage(View view) {
         createBuilder();
         System.out.println("Compose note");
         builder.create().show();

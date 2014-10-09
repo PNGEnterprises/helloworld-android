@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 
+import android.app.ActionBar;
 import android.app.LoaderManager.LoaderCallbacks;
 import android.content.ContentResolver;
 import android.content.CursorLoader;
@@ -69,6 +70,10 @@ public class LoginActivity extends PlusBaseActivity implements LoaderCallbacks<C
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+
+
+        ActionBar actionBar = getActionBar();
+        actionBar.hide();
 //        // Find the Google+ sign in button.
 //        mPlusSignInButton = (SignInButton) findViewById(R.id.plus_sign_in_button);
 //        if (supportsGooglePlayServices()) {
